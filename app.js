@@ -1,4 +1,4 @@
-/* AAP Attendance app (GitHub Pages / Android) v9.0.0 — talks to the Apps Script JSON API. */
+/* AAP Attendance app (GitHub Pages / Android) v10.0.0 — talks to the Apps Script JSON API. */
 const APP = window.APP_CONFIG || {};
 const APP_URL = location.origin + location.pathname.replace(/index\.html$/, '');
 const CFG_KEY = 'aap_attendance_cfg_v9';
@@ -193,7 +193,8 @@ const BOOT = Object.assign(
   }
   function setSync(kind, text) {
     const el = $('syncLine');
-    if (!kind) { show(el, false); return; }
+    // v10: saving happens silently in the background — only problems are shown to the employee
+    if (!kind || kind === 'busy' || kind === 'ok') { show(el, false); return; }
     el.className = 'sync sync-' + kind;
     el.innerHTML = (kind === 'busy' ? '<span class="mini-spin"></span>' : kind === 'ok' ? '✓ ' : '⚠ ') + esc(text);
   }
@@ -659,7 +660,6 @@ const BOOT = Object.assign(
       ? s.events.map(e => '<li><span><span class="badge ' + (e.action === 'IN' ? 'b-present' : 'b-absent') + '">' +
           (e.action === 'IN' ? 'IN' : 'OUT') + '</span>' +
           (e.dist !== '' && e.dist != null ? '<span class="muted small"> ' + esc(e.dist) + ' m</span>' : '') +
-          (e.pending ? '<span class="muted small"> · saving…</span>' : '') +
           (e.notes ? '<span class="muted small"> · ' + esc(e.notes) + '</span>' : '') +
           '</span><span class="strong">' + esc(to12h(e.time)) + '</span></li>').join('')
       : '<li class="muted">No activity yet today.</li>';
