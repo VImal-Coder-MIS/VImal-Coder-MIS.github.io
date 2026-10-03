@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.vimal_coder_mis.twa",
+        "sha256_cert_fingerprints": ["E4:97:99:7D:BC:1D:A2:60:F4:DB:BA:6F:A1:3E:CD:94:96:A0:45:BD:5B:94:7E:E9:55:CB:6E:A6:8D:33:74:DE"]
+      }
+    }]
