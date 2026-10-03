@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AAP Attendance</title>
+  <meta name="description" content="Atlantic Agro Plast — employee attendance">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Attendance">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css?v=9.0.0">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="row" style="gap:10px;flex-wrap:nowrap">
+      <span class="v-logo" aria-hidden="true"></span>
+      <div>
+        <div class="brand" id="company">Attendance</div>
+        <div class="muted small" id="dateLabel"></div>
+      </div>
+    </div>
+    <button class="install-btn" id="installBtn" type="button">
+      <span class="v-logo sm" aria-hidden="true"></span>
+      Install App
+    </button>
+  </header>
+
+  <!-- In-app browser warning (WhatsApp / Instagram / Facebook) -->
+  <div class="card warn-card hidden" id="inappCard">
+    <div class="strong">⚠ You opened this inside another app</div>
+    <p class="small" style="margin:6px 0 10px">To stay logged in, open it in <b id="inappBrowser">Chrome</b>.</p>
+    <div class="row">
+      <a class="btn btn-primary small" id="openChrome" href="#" target="_top">Open in Chrome</a>
+      <button class="btn btn-ghost small" id="copyLink1" type="button">Copy link</button>
+    </div>
+    <p class="small muted hidden" id="iosHint" style="margin:8px 0 0">iPhone: tap <b>⋯</b> or <b>Share</b> → <b>Open in Safari</b>.</p>
+  </div>
+
+  <section class="card center" id="clockCard">
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="muted small">India Standard Time</div>
+  </section>
+
+  <!-- WELCOME -->
+  <section id="welcomeView" class="hidden">
+    <div class="card center" style="padding:24px 16px">
+      <div class="strong" style="font-size:19px">Welcome</div>
+      <p class="muted small" style="margin:6px 0 18px">First time on this phone? Register. Already registered? Log in.</p>
+      <button class="btn btn-in btn-wide" id="goRegister" type="button">Register</button>
+      <button class="btn btn-ghost btn-wide" id="goLogin" type="button" style="margin-top:10px">Login</button>
+    </div>
+  </section>
+
+  <!-- REGISTER / COMPLETE PROFILE -->
+  <section id="regView" class="hidden">
+    <form class="card" id="regForm" autocomplete="off" novalidate>
+      <div class="strong" style="font-size:18px" id="regTitle">Register</div>
+      <p class="muted small" id="regSub" style="margin:4px 0 14px">Fill your details. Admin will approve your registration.</p>
+      <label class="label" for="fName">Full name</label>
+      <input id="fName" maxlength="60" autocomplete="name" required>
+      <label class="label" for="fMobile">Mobile number</label>
+      <div class="prefix-input"><span>+91</span><input id="fMobile" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10-digit mobile" required></div>
+      <label class="label" for="fDob">Date of birth</label>
+      <input id="fDob" type="date" required>
+      <label class="label" for="fDept">Department <span class="muted">(optional)</span></label>
+      <input id="fDept" maxlength="40">
+      <div class="label" style="margin-top:12px">Your photo</div>
+      <div class="photo-pick" id="regPhotoBox">
+        <div class="ph" id="regPhotoPrev">📷</div>
+        <div style="min-width:0">
+          <div class="strong" id="regPhotoTitle">Add a clear photo of your face</div>
+          <div class="muted small" style="margin:2px 0 8px">Admin uses it to match your check-in selfies.</div>
+          <button class="btn btn-ghost small" type="button" id="regPhotoBtn">📷 Take photo</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div><label class="label" for="fPin">Create 4-digit PIN</label><input id="fPin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" required></div>
+        <div><label class="label" for="fPin2">Confirm PIN</label><input id="fPin2" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" required></div>
+      </div>
+      <div class="msg warn-msg">🔐 Don't use your ATM / UPI / bank PIN. <b>Admin can see this PIN.</b></div>
+      <div id="regMsg" class="msg error hidden"></div>
+      <button class="btn btn-in btn-wide" type="submit" id="regSubmit" style="margin-top:12px">Submit for approval</button>
+      <button class="btn btn-ghost btn-wide" type="button" id="regBack" style="margin-top:8px">Back</button>
+    </form>
+  </section>
+
+  <!-- WAITING FOR APPROVAL -->
+  <section id="pendingView" class="hidden">
+    <div class="card center" style="padding:24px 16px">
+      <div class="done-icon" id="pendIcon" style="background:var(--warn-soft);color:var(--warn-ink)">⏳</div>
+      <div class="strong" style="font-size:18px" id="pendTitle">Waiting for admin approval</div>
+      <p class="muted small" id="pendText" style="margin:6px 0 16px"></p>
+      <button class="btn btn-primary btn-wide" id="pendCheck" type="button">Check now</button>
+      <button class="btn btn-ghost btn-wide hidden" id="pendAgain" type="button" style="margin-top:8px">Register again</button>
+      <button class="btn btn-ghost btn-wide hidden" id="pendLogin" type="button" style="margin-top:8px">Login</button>
+    </div>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="loginView" class="hidden">
+    <form class="card" id="loginForm" autocomplete="off" novalidate>
+      <div class="strong" style="font-size:18px">Login</div>
+      <p class="muted small" style="margin:4px 0 14px">Use the mobile number and PIN you registered with.</p>
+      <div id="loginInfo" class="msg info hidden" style="margin:0 0 12px"></div>
+      <label class="label" for="lMobile">Mobile number</label>
+      <div class="prefix-input"><span>+91</span><input id="lMobile" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="10-digit mobile" required></div>
+      <label class="label" for="lPin">PIN</label>
+      <input id="lPin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" required>
+      <div id="loginMsg" class="msg error hidden"></div>
+      <button class="btn btn-in btn-wide" type="submit" id="loginBtn" style="margin-top:12px">Login</button>
+      <p class="muted small center" style="margin:12px 0 0">Forgot PIN? Contact admin. · <a href="#" id="toRegister">New here? Register</a></p>
+    </form>
+  </section>
+
+  <!-- LOADING -->
+  <section id="loadView" class="card center hidden">
+    <div class="spinner" style="margin:6px auto 10px"></div>
+    <div class="muted">Opening…</div>
+  </section>
+
+  <!-- MAIN -->
+  <section id="mainView" class="hidden">
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="muted small">Hello,</div>
+          <div class="strong" style="font-size:18px" id="empName"></div>
+          <div class="muted small" id="empMeta"></div>
+        </div>
+        <span class="badge" id="statusBadge"></span>
+      </div>
+      <div class="row between net">
+        <span id="zoneText"></span>
+        <button class="loc-chip" id="locChip" type="button" aria-live="polite"><span class="dot"></span><span id="locText">Check my location</span></button>
+      </div>
+      <div class="sync hidden" id="syncLine" aria-live="polite"></div>
+    </div>
+
+    <div class="card hidden" id="photoCard">
+      <div class="photo-pick" style="margin:0">
+        <div class="ph">📷</div>
+        <div style="min-width:0">
+          <div class="strong">Add your reference photo</div>
+          <div class="muted small" style="margin:2px 0 8px">One-time step. Admin uses it to match your selfies.</div>
+          <button class="btn btn-primary small" type="button" id="addPhotoBtn">📷 Take photo</button>
+        </div>
+      </div>
+      <div id="photoMsg" class="msg error hidden"></div>
+    </div>
+
+    <div class="card" id="actionCard">
+      <button id="btnAction" class="btn btn-big" type="button"></button>
+      <details class="note-box" id="noteBox">
+        <summary>Add a note (optional)</summary>
+        <textarea id="notes" rows="2" maxlength="200" placeholder="e.g. Client visit, left early for bank work"></textarea>
+      </details>
+      <div id="msg" class="msg hidden" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="card done-card hidden" id="doneCard">
+      <div class="done-icon">✓</div>
+      <div class="strong">You're checked out for today.</div>
+      <div class="muted small">See you tomorrow!</div>
+      <div id="doneMsg" class="msg success hidden"></div>
+    </div>
+
+    <div class="card">
+      <h3>Today</h3>
+      <div class="grid3">
+        <div><div class="muted small">Check In</div><div class="strong" id="sumIn">—</div></div>
+        <div><div class="muted small">Check Out</div><div class="strong" id="sumOut">—</div></div>
+        <div><div class="muted small">Hours</div><div class="strong" id="sumHours">—</div></div>
+      </div>
+      <ul class="timeline" id="timeline"></ul>
+    </div>
+
+    <p class="muted small center" id="phoneLine"></p>
+  </section>
+</div>
+
+<!-- INSTALL / KEEP-ME-LOGGED-IN SHEET -->
+<div class="sheet hidden" id="installSheet" role="dialog" aria-modal="true">
+  <div class="sheet-card">
+    <div class="row" style="gap:12px;flex-wrap:nowrap;margin-bottom:8px">
+      <span class="v-logo lg" aria-hidden="true"></span>
+      <div><div class="strong" style="font-size:17px">Install on your phone</div><div class="muted small">Opens like an app · stays logged in</div></div>
+    </div>
+    <ol class="steps" id="installSteps"></ol>
+    <div id="apkBox" class="hidden" style="margin-top:12px">
+      <a class="btn btn-in btn-wide" id="apkLink" href="#" download>⬇ Download Android app</a>
+      <p class="muted small" style="margin:8px 0 0">After download: open the file → <b>Install</b>. If Android asks, allow <b>Install unknown apps</b> for Chrome.</p>
+    </div>
+    <button class="btn btn-primary btn-wide hidden" id="pwaInstall" type="button" style="margin-top:12px">Install now</button>
+    <div id="myLinkBox" class="hidden">
+      <div class="label" style="margin-top:12px">Backup: save your personal link</div>
+      <p class="muted small" style="margin:0 0 8px">If you ever get logged out, open this link to get back in instantly.</p>
+      <div class="row">
+        <a class="btn btn-primary small" id="waLink" href="#" target="_blank" rel="noopener">Send to my WhatsApp</a>
+        <button class="btn btn-ghost small" id="copyLink2" type="button">Copy my link</button>
+      </div>
+      <p class="muted small" style="margin:8px 0 0">⚠ This link is personal. Don't share it.</p>
+    </div>
+    <div id="installMsg" class="msg success hidden"></div>
+    <button class="btn btn-ghost btn-wide" id="installClose" type="button" style="margin-top:12px">Done</button>
+  </div>
+</div>
+
+<input type="file" id="cam" accept="image/*" capture="user" class="hidden">
+<input type="file" id="refCam" accept="image/*" capture="user" class="hidden">
+<div class="overlay hidden" id="overlay"><div class="spinner"></div><div id="overlayText">Please wait…</div></div>
+
+<script src="config.js?v=9.0.0"></script>
+<script src="app.js?v=9.0.0"></script>
+</body>
+</html>
