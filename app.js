@@ -1,4 +1,4 @@
-/* AAP Attendance app (GitHub Pages / Android) v12.0.0 — talks to the Apps Script JSON API. */
+/* AAP Attendance app (GitHub Pages / Android) v13.0.0 — talks to the Apps Script JSON API. */
 const APP = window.APP_CONFIG || {};
 const APP_URL = location.origin + location.pathname.replace(/index\.html$/, '');
 const CFG_KEY = 'aap_attendance_cfg_v9';
@@ -1017,7 +1017,7 @@ const BOOT = Object.assign(
   setupInApp();
 
   /* installed-app detection, install prompt, APK link */
-  const APP_VERSION = '12.0.0';
+  const APP_VERSION = '13.0.0';
   const qs0 = new URLSearchParams(location.search);
   const FROM_APK = String(document.referrer).indexOf('android-app://') === 0;
   try {
@@ -1061,18 +1061,30 @@ const BOOT = Object.assign(
       if (v.web && v.web !== APP_VERSION) {
         let done = '';
         try { done = sessionStorage.getItem('aap_reloaded_for') || ''; } catch (_) {}
-        if (done !== v.web && !flushing && !busy) {
-          try { sessionStorage.setItem('aap_reloaded_for', v.web); } catch (_) {}
-          const go = () => location.reload();
-          if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
-            navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}).then(go);
-          } else go();
-          return;
-        }
+        if (done !== v.web) { offerUpdate(v); return; }   // (already updated once this session → never loop)
       }
       if (IN_APK && IS_ANDROID && v.minApk && APK_V < v.minApk) showGate('update');
     }).catch(() => {});
   }
+  /* "Update available" pop-up: must tap Update now; waits while a check-in is still being saved */
+  let updWanted = null;
+  function offerUpdate(v) {
+    updWanted = v;
+    if (flushing || busy || queue.length) { setTimeout(() => { if (updWanted) offerUpdate(updWanted); }, 3000); return; }
+    $('updNotes').textContent = v.notes || '';
+    show($('updNotes'), !!v.notes);
+    show($('updGate'), true);
+  }
+  $('updNow').addEventListener('click', () => {
+    const v = updWanted || {};
+    try { sessionStorage.setItem('aap_reloaded_for', v.web || ''); } catch (_) {}
+    $('updNow').disabled = true;
+    $('updNow').textContent = 'Updating…';
+    const go = () => location.reload();
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+      navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}).then(go);
+    } else go();
+  });
   checkVersion();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkVersion(); });
   let deferredPrompt = null;

@@ -1,6 +1,6 @@
-/* AAP Attendance service worker v12.0.0 — network first (always the latest version), cache as offline backup. */
-const CACHE = 'aap-attendance-12.0.0';
-const SHELL = ['./', './index.html', './styles.css?v=12.0.0', './app.js?v=12.0.0', './config.js?v=12.0.0',
+/* AAP Attendance service worker v13.0.0 — network first (always the latest version), cache as offline backup. */
+const CACHE = 'aap-attendance-13.0.0';
+const SHELL = ['./', './index.html', './styles.css?v=13.0.0', './app.js?v=13.0.0', './config.js?v=13.0.0',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -18,7 +18,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.indexOf('/download/') === 0) return;
   e.respondWith(
-    fetch(req).then(res => {
+    fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return res;
     }).catch(() => caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(r => r || caches.match('./')))

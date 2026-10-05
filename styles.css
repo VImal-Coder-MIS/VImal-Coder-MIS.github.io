@@ -250,6 +250,8 @@
   .v-logo.xl { width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 6px 18px rgba(31, 94, 255, .15); }
   .gate-steps { text-align: left; margin: 14px 0 14px; }
   .gate .btn-wide + .btn-wide { margin-top: 0; }
+  .upd-notes { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-ink); font-size: 14px; text-align: left; white-space: pre-line; }
+  .upd-notes::before { content: "What's new"; display: block; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
   .linkish { appearance: none; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; margin-top: 14px; cursor: pointer; padding: 6px; }
 
   @media (max-width: 760px) {

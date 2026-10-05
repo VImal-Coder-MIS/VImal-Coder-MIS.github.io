@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css?v=12.0.0">
+  <link rel="stylesheet" href="styles.css?v=13.0.0">
 </head>
 <body>
 <div class="app">
@@ -220,6 +220,17 @@
   </div>
 </div>
 
+<!-- UPDATE AVAILABLE (installed app / website) -->
+<div class="gate hidden" id="updGate" role="dialog" aria-modal="true">
+  <div class="gate-card">
+    <span class="v-logo xl" aria-hidden="true"></span>
+    <div class="strong" style="font-size:21px;margin-top:14px">Update available</div>
+    <p class="muted" style="margin:6px 0 4px">A new version of the app is ready.</p>
+    <div class="upd-notes hidden" id="updNotes"></div>
+    <button class="btn btn-in btn-wide" id="updNow" type="button" style="margin-top:16px">Update now</button>
+  </div>
+</div>
+
 <!-- INSTALL / KEEP-ME-LOGGED-IN SHEET -->
 <div class="sheet hidden" id="installSheet" role="dialog" aria-modal="true">
   <div class="sheet-card">
@@ -251,7 +262,7 @@
 <input type="file" id="refCam" accept="image/*" capture="user" class="hidden">
 <div class="overlay hidden" id="overlay"><div class="spinner"></div><div id="overlayText">Please wait…</div></div>
 
-<script src="config.js?v=12.0.0"></script>
-<script src="app.js?v=12.0.0"></script>
+<script src="config.js?v=13.0.0"></script>
+<script src="app.js?v=13.0.0"></script>
 </body>
 </html>
