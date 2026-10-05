@@ -3,7 +3,7 @@
   "name": "AAP Attendance",
   "short_name": "Attendance",
   "description": "Atlantic Agro Plast \u2014 employee attendance (check in / check out)",
-  "start_url": "/",
+  "start_url": "/?apk=2",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

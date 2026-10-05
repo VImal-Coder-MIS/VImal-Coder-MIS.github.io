@@ -1,4 +1,4 @@
-/* AAP Attendance app (GitHub Pages / Android) v10.0.0 — talks to the Apps Script JSON API. */
+/* AAP Attendance app (GitHub Pages / Android) v11.0.0 — talks to the Apps Script JSON API. */
 const APP = window.APP_CONFIG || {};
 const APP_URL = location.origin + location.pathname.replace(/index\.html$/, '');
 const CFG_KEY = 'aap_attendance_cfg_v9';
@@ -14,9 +14,11 @@ const BOOT = Object.assign(
   const REG_KEY = 'aap_attendance_reg_v6';     // waiting registration { regId, token, name }
   const QUEUE_KEY = 'aap_attendance_queue_v5'; // unsent check-ins
   const STATE_KEY = 'aap_attendance_state_v9'; // last screen, shown instantly on open
+  const PHOTO_KEY = 'aap_attendance_photo_v11'; // own reference photo, shown as the avatar
   const GOOD_ACC = 20;
-  const SETTLE_MS = 2500;
-  const MAX_WAIT_MS = 12000;
+  const SETTLE_MS = 6000;         // background: wait up to 6 s for a ≤20 m fix
+  const MAX_WAIT_MS = 20000;      // then use the best fix we have (server allows for GPS accuracy)
+  const OK_ACC = 35;              // a fix this good is used immediately
   const FIX_MAX_AGE_MS = 45000;
   const PREWARM_MS = 60000;
   const REFRESH_AFTER_MS = 60000;
@@ -177,6 +179,8 @@ const BOOT = Object.assign(
   function tick() {
     if (document.hidden) return;
     $('clock').textContent = clockFmt.format(now());
+    if ($('todayClock')) $('todayClock').textContent = clockFmt.format(now());
+    if (state && state.summary && state.summary.checkIn && !state.summary.checkOut && now().getSeconds() === 0) renderHours();
   }
 
   /* ---------- messages ---------- */
@@ -251,20 +255,20 @@ const BOOT = Object.assign(
       if (geoDenied) { reject(new Error(PERM_MSG)); return; }
       const maxAcc = geo().maxAcc;
       const ready = freshFix();
-      if (ready && ready.acc <= Math.min(maxAcc, 50)) { resolve(ready); return; }
+      if (ready && ready.acc <= OK_ACC) { resolve(ready); return; }
       const t0 = Date.now();
       let finished = false;
       const w = {
         check() {
           const f = freshFix();
-          if (f && (f.acc <= GOOD_ACC || (f.acc <= maxAcc && Date.now() - t0 >= SETTLE_MS))) done(null, f);
+          if (f && (f.acc <= GOOD_ACC || (f.acc <= OK_ACC && Date.now() - t0 >= SETTLE_MS))) done(null, f);
         },
         fail(e) { done(e); }
       };
       const settleTimer = setTimeout(() => w.check(), SETTLE_MS);
       const hardTimer = setTimeout(() => {
         const f = freshFix();
-        if (f) done(null, f);
+        if (f) done(null, f);   // best available (even if weak) — the server decides
         else done(new Error('Could not get your location. Turn ON Location/GPS on your phone and try again.'));
       }, MAX_WAIT_MS);
       function done(err, val) {
@@ -320,7 +324,7 @@ const BOOT = Object.assign(
   const VIEWS = ['welcome', 'reg', 'pending', 'login', 'load', 'main'];
   function showView(name) {
     VIEWS.forEach(v => show($(v + 'View'), v === name));
-    show($('clockCard'), name === 'main' || name === 'welcome' || name === 'load');
+    show($('clockCard'), name === 'welcome' || name === 'load');
     if (name !== 'pending') stopPoll();
     window.scrollTo(0, 0);
   }
@@ -404,6 +408,7 @@ const BOOT = Object.assign(
       const r = await run('regSubmit', d, phoneInfo(), ...link);
       if (regMode === 'profile') forgetMe();
       saveReg({ regId: r.regId, token: r.token, name: r.name });
+      lsSet(PHOTO_KEY, { reg: r.regId, id: profileFor ? profileFor.id : '', photo: d.photo });
       $('regForm').reset();
       regPhoto = '';
       renderRegPhoto();
@@ -453,6 +458,7 @@ const BOOT = Object.assign(
     overlay(true, 'Saving photo…');
     try {
       applyServer(await run('empSetPhoto', me.id, me.token, photo));
+      lsSet(PHOTO_KEY, { id: me.id, photo: photo });
       boxMsg('photoMsg', '');
       showMsg('✓ Reference photo saved. Thank you!', 'success');
       vibrate(60);
@@ -492,6 +498,8 @@ const BOOT = Object.assign(
     try {
       const st = await run('regStatus', r.regId, r.token);
       if (st.status === 'APPROVED' && st.me) {
+        const ph = lsGet(PHOTO_KEY);
+        if (ph && ph.reg === r.regId) lsSet(PHOTO_KEY, { id: st.me.id, photo: ph.photo });
         me = st.me;
         saveMe(me);
         applyServer(st.state);
@@ -635,8 +643,10 @@ const BOOT = Object.assign(
     const s = state;
     if (!s) return;
     $('empName').textContent = s.name;
-    $('empMeta').textContent = [s.id, s.department, s.mobileMasked].filter(Boolean).join(' · ');
+    $('empMeta').textContent = [s.id, s.department].filter(Boolean).join(' · ');
     show($('photoCard'), s.hasPhoto === false);
+    renderAvatar(s);
+    renderWeek(s);
 
     const b = BADGE[s.summary.status] || [s.summary.status, ''];
     $('statusBadge').textContent = b[0] + (s.summary.late ? ' · Late' : '');
@@ -653,20 +663,69 @@ const BOOT = Object.assign(
       btn.dataset.action = action;
     }
 
+    const late = isLate(s.summary.checkIn, s);
     $('sumIn').textContent = to12h(s.summary.checkIn);
+    $('sumInSub').innerHTML = s.summary.checkIn ? (late ? '<span class="t-late">Late</span>' : '<span class="t-ok">On time</span>') : 'Not yet';
     $('sumOut').textContent = to12h(s.summary.checkOut);
-    $('sumHours').textContent = s.summary.hours || '—';
+    $('sumOutSub').textContent = s.summary.checkOut ? 'Done for today' : s.summary.checkIn ? 'Pending' : 'Not yet';
+    $('sumDays').textContent = s.monthDays != null ? s.monthDays : '—';
+    renderHours();
+    const firstIn = s.events.findIndex(e => e.action === 'IN');
     $('timeline').innerHTML = s.events.length
-      ? s.events.map(e => '<li><span><span class="badge ' + (e.action === 'IN' ? 'b-present' : 'b-absent') + '">' +
-          (e.action === 'IN' ? 'IN' : 'OUT') + '</span>' +
-          (e.dist !== '' && e.dist != null ? '<span class="muted small"> ' + esc(e.dist) + ' m</span>' : '') +
-          (e.notes ? '<span class="muted small"> · ' + esc(e.notes) + '</span>' : '') +
-          '</span><span class="strong">' + esc(to12h(e.time)) + '</span></li>').join('')
-      : '<li class="muted">No activity yet today.</li>';
+      ? s.events.slice().reverse().map(e => {
+          const isIn = e.action === 'IN';
+          const tag = isIn && s.events.indexOf(e) === firstIn ? (isLate(e.time, s) ? ' <span class="t-late">Late</span>' : ' <span class="t-ok">On time</span>') : '';
+          return '<li><span class="ai ' + (isIn ? 'ai-in' : 'ai-out') + '">' + (isIn ? '↘' : '↗') + '</span>' +
+            '<div class="a-body"><div class="strong">' + (isIn ? 'Check In' : 'Check Out') + tag + '</div>' +
+            '<div class="muted small">' + esc(state.dateLabel || '') +
+              (e.dist !== '' && e.dist != null ? ' · ' + esc(e.dist) + ' m from office' : '') +
+              (e.notes ? ' · ' + esc(e.notes) : '') + '</div></div>' +
+            '<span class="a-time">' + esc(to12h(e.time)) + '</span></li>';
+        }).join('')
+      : '<li class="muted" style="padding:14px 0">No activity yet today.</li>';
 
     $('zoneText').textContent = s.geoCheck ? 'Allowed within ' + s.radius + ' m of office' : 'Location check is off';
     $('phoneLine').textContent = s.linkedSince ? '📱 This phone is linked since ' + s.linkedSince + (s.phoneInfo ? ' · ' + s.phoneInfo : '') : '';
     renderLoc();
+  }
+
+  /* ---------- v11 main-screen helpers ---------- */
+  function isLate(t, s) {
+    if (!t) return false;
+    const after = (s && s.lateAfter) || '10:15';
+    return toSec(String(t).length === 5 ? t + ':00' : t) > toSec(after + ':59');
+  }
+  function fmtDur(mins) {
+    mins = Math.max(0, Math.round(mins));
+    return Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm';
+  }
+  function renderHours() {
+    const s = state;
+    if (!s || !$('sumHours')) return;
+    if (s.summary.checkIn && !s.summary.checkOut) {
+      const nowSec = toSec(hmsFmt.format(now()));
+      $('sumHours').textContent = fmtDur((nowSec - toSec(s.summary.checkIn)) / 60);
+      $('sumHoursSub').textContent = 'Running';
+    } else if (s.summary.hours) {
+      $('sumHours').textContent = fmtDur(Number(s.summary.hours) * 60);
+      $('sumHoursSub').textContent = 'Today';
+    } else {
+      $('sumHours').textContent = '—';
+      $('sumHoursSub').textContent = 'Today';
+    }
+  }
+  function renderAvatar(s) {
+    const p = lsGet(PHOTO_KEY);
+    const el = $('empAvatar');
+    if (p && p.id === s.id && p.photo) el.innerHTML = '<img alt="" src="' + p.photo + '">';
+    else el.textContent = String(s.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  }
+  function renderWeek(s) {
+    const w = s.week || [];
+    $('weekStrip').innerHTML = w.map(d => '<div class="wd' + (d.today ? ' today' : '') + (d.future ? ' future' : '') + '">' +
+      '<span class="wd-l">' + esc(d.label) + '</span><span class="wd-n">' + d.day + '</span>' +
+      '<span class="wd-dot ' + (d.present ? 'p' : d.off ? 'o' : d.future || d.today ? '' : 'a') + '"></span></div>').join('');
+    show($('weekStrip'), w.length > 0);
   }
 
   async function resume(quiet) {
@@ -788,7 +847,7 @@ const BOOT = Object.assign(
     const g = geo();
     const f = freshFix();
     // If we already KNOW the phone is outside the zone, say so now instead of a fake success.
-    if (g.geoCheck && f && f.acc <= g.maxAcc && fixDistance(f) > g.radius) {
+    if (g.geoCheck && f && f.acc <= OK_ACC && fixDistance(f) - Math.min(f.acc, g.locTol || 0) > g.radius) {
       showMsg('You are ' + fixDistance(f) + ' m away from the office. Check In/Out is allowed only within ' + g.radius + ' m.', 'error');
       vibrate([40, 60, 40]);
       return;
@@ -802,7 +861,7 @@ const BOOT = Object.assign(
       notes: $('notes').value,
       selfie: selfie,
       ts: ts,
-      loc: f && f.acc <= g.maxAcc ? { lat: f.lat, lng: f.lng, acc: f.acc } : null,
+      loc: f && f.acc <= OK_ACC ? { lat: f.lat, lng: f.lng, acc: f.acc } : null,   // weak fix → get a better one in the background
       dist: f ? fixDistance(f) : null,
       tries: 0
     };
@@ -859,6 +918,15 @@ const BOOT = Object.assign(
           stopWatch();
         } catch (e) {
           if (handleAuthError(e)) return;
+          // weak indoor GPS: silently try twice more with a fresh reading before telling the employee
+          if (/away from the office|signal is weak/i.test(e.message) && (job.geoTries || 0) < 2 && job.loc && job.loc.acc > 20) {
+            job.geoTries = (job.geoTries || 0) + 1;
+            job.loc = null;
+            fix = null;
+            saveQueue();
+            await new Promise(r => setTimeout(r, 4000));
+            continue;
+          }
           if (isRetryable(e) || !navigator.onLine) {
             const wait = RETRY_MS[Math.min(retryStep++, RETRY_MS.length - 1)];
             setSync('warn', 'No connection — will retry automatically. Keep this page open.');
@@ -939,8 +1007,64 @@ const BOOT = Object.assign(
   setupInApp();
 
   /* installed-app detection, install prompt, APK link */
-  const STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) ||
-    navigator.standalone === true || String(document.referrer).indexOf('android-app://') === 0;
+  const APP_VERSION = '11.0.0';
+  const qs0 = new URLSearchParams(location.search);
+  const FROM_APK = String(document.referrer).indexOf('android-app://') === 0;
+  try {
+    if (FROM_APK) sessionStorage.setItem('aap_in_apk', '1');
+    if (qs0.get('apk')) sessionStorage.setItem('aap_apk_v', qs0.get('apk'));
+  } catch (_) {}
+  const IN_APK = FROM_APK || (function () { try { return sessionStorage.getItem('aap_in_apk') === '1'; } catch (_) { return false; } })();
+  const APK_V = Number((function () { try { return sessionStorage.getItem('aap_apk_v'); } catch (_) { return 0; } })() || 1);
+  const STANDALONE = IN_APK || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+
+  /* full-screen "Install the app" (website) / "Update required" (old APK) */
+  function showGate(kind) {
+    const upd = kind === 'update';
+    $('gateTitle').textContent = upd ? 'Update required' : 'Install AAP Attendance';
+    $('gateText').textContent = upd ? 'A new version of the app is ready. Download and install it to continue.'
+      : INAPP.test(UA) ? 'Open this link in Chrome first, then download the app.'
+      : 'Use the app for check in / check out. It stays logged in and opens instantly.';
+    show($('gateAndroid'), IS_ANDROID);
+    show($('gateIos'), IS_IOS && !upd);
+    show($('gateOther'), !IS_ANDROID && !IS_IOS);
+    show($('gateOpenApp'), IS_ANDROID && !upd && !INAPP.test(UA) && !!APP.ANDROID_PACKAGE);
+    show($('gateContinue'), !upd);
+    $('gateApk').href = INAPP.test(UA) && IS_ANDROID ? $('openChrome').href : (APP.APK_URL || '#');
+    $('gateApk').textContent = INAPP.test(UA) && IS_ANDROID ? 'Open in Chrome' : upd ? '⬇ Download update' : '⬇ Download app';
+    if (APP.ANDROID_PACKAGE) $('gateOpenApp').href = 'intent://' + location.host + location.pathname + '#Intent;scheme=https;package=' + APP.ANDROID_PACKAGE + ';end';
+    show($('gate'), true);
+  }
+  $('gateContinue').addEventListener('click', () => {
+    try { sessionStorage.setItem('aap_gate_skip', '1'); } catch (_) {}
+    show($('gate'), false);
+  });
+  if (!STANDALONE && APP.API_URL) {
+    let skip = false;
+    try { skip = sessionStorage.getItem('aap_gate_skip') === '1'; } catch (_) {}
+    if (!skip) showGate('install');
+  }
+
+  /* updates: screens update by themselves; an old APK gets a blocking "Update required" */
+  function checkVersion() {
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(v => {
+      if (v.web && v.web !== APP_VERSION) {
+        let done = '';
+        try { done = sessionStorage.getItem('aap_reloaded_for') || ''; } catch (_) {}
+        if (done !== v.web && !flushing && !busy) {
+          try { sessionStorage.setItem('aap_reloaded_for', v.web); } catch (_) {}
+          const go = () => location.reload();
+          if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+            navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}).then(go);
+          } else go();
+        }
+        return;
+      }
+      if (IN_APK && IS_ANDROID && v.minApk && APK_V < v.minApk) showGate('update');
+    }).catch(() => {});
+  }
+  checkVersion();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkVersion(); });
   let deferredPrompt = null;
   let apkReady = false;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });

@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css?v=10.0.0">
+  <link rel="stylesheet" href="styles.css?v=11.0.0">
 </head>
 <body>
 <div class="app">
@@ -126,20 +126,18 @@
 
   <!-- MAIN -->
   <section id="mainView" class="hidden">
-    <div class="card">
-      <div class="row between">
-        <div>
-          <div class="muted small">Hello,</div>
-          <div class="strong" style="font-size:18px" id="empName"></div>
-          <div class="muted small" id="empMeta"></div>
+    <div class="card prof-card">
+      <div class="row between" style="flex-wrap:nowrap">
+        <div class="row" style="flex-wrap:nowrap;min-width:0;gap:12px">
+          <span class="avatar" id="empAvatar"></span>
+          <div style="min-width:0">
+            <div class="strong" style="font-size:17px" id="empName"></div>
+            <div class="muted small" id="empMeta"></div>
+          </div>
         </div>
         <span class="badge" id="statusBadge"></span>
       </div>
-      <div class="row between net">
-        <span id="zoneText"></span>
-        <button class="loc-chip" id="locChip" type="button" aria-live="polite"><span class="dot"></span><span id="locText">Check my location</span></button>
-      </div>
-      <div class="sync hidden" id="syncLine" aria-live="polite"></div>
+      <div class="week" id="weekStrip"></div>
     </div>
 
     <div class="card hidden" id="photoCard">
@@ -154,8 +152,20 @@
       <div id="photoMsg" class="msg error hidden"></div>
     </div>
 
+    <div class="sec-head"><span class="strong">Today Attendance</span><span class="muted small" id="todayClock"></span></div>
+    <div class="tiles">
+      <div class="tile"><div class="tile-top"><span class="ti ti-in">↘</span>Check In</div><div class="tile-v" id="sumIn">—</div><div class="tile-s" id="sumInSub">Not yet</div></div>
+      <div class="tile"><div class="tile-top"><span class="ti ti-out">↗</span>Check Out</div><div class="tile-v" id="sumOut">—</div><div class="tile-s" id="sumOutSub">Not yet</div></div>
+      <div class="tile"><div class="tile-top"><span class="ti ti-hrs">⏱</span>Working Hours</div><div class="tile-v" id="sumHours">—</div><div class="tile-s" id="sumHoursSub">Today</div></div>
+      <div class="tile"><div class="tile-top"><span class="ti ti-days">📅</span>Days Present</div><div class="tile-v" id="sumDays">—</div><div class="tile-s">This month</div></div>
+    </div>
+
     <div class="card" id="actionCard">
       <button id="btnAction" class="btn btn-big" type="button"></button>
+      <div class="row between net">
+        <span id="zoneText"></span>
+        <button class="loc-chip" id="locChip" type="button" aria-live="polite"><span class="dot"></span><span id="locText">Check my location</span></button>
+      </div>
       <details class="note-box" id="noteBox">
         <summary>Add a note (optional)</summary>
         <textarea id="notes" rows="2" maxlength="200" placeholder="e.g. Client visit, left early for bank work"></textarea>
@@ -169,19 +179,45 @@
       <div class="muted small">See you tomorrow!</div>
       <div id="doneMsg" class="msg success hidden"></div>
     </div>
+    <div class="sync hidden" id="syncLine" aria-live="polite"></div>
 
-    <div class="card">
-      <h3>Today</h3>
-      <div class="grid3">
-        <div><div class="muted small">Check In</div><div class="strong" id="sumIn">—</div></div>
-        <div><div class="muted small">Check Out</div><div class="strong" id="sumOut">—</div></div>
-        <div><div class="muted small">Hours</div><div class="strong" id="sumHours">—</div></div>
-      </div>
-      <ul class="timeline" id="timeline"></ul>
+    <div class="sec-head"><span class="strong">Your Activity</span></div>
+    <div class="card" style="padding:4px 16px">
+      <ul class="activity" id="timeline"></ul>
     </div>
 
     <p class="muted small center" id="phoneLine"></p>
   </section>
+</div>
+
+<!-- INSTALL GATE (website only) + UPDATE REQUIRED -->
+<div class="gate hidden" id="gate" role="dialog" aria-modal="true">
+  <div class="gate-card">
+    <span class="v-logo xl" aria-hidden="true"></span>
+    <div class="strong" style="font-size:21px;margin-top:14px" id="gateTitle">Install AAP Attendance</div>
+    <p class="muted" id="gateText" style="margin:6px 0 18px">Use the app for check in / check out. It stays logged in and opens instantly.</p>
+    <div id="gateAndroid" class="hidden">
+      <a class="btn btn-in btn-wide" id="gateApk" href="#" download>⬇ Download app</a>
+      <ol class="steps gate-steps">
+        <li>Open the downloaded file → tap <b>Install</b>.</li>
+        <li>If asked, allow <b>Install unknown apps</b> for Chrome.</li>
+        <li>Open <b>AAP Attendance</b> from your apps.</li>
+      </ol>
+      <a class="btn btn-ghost btn-wide" id="gateOpenApp" href="#">Already installed? Open the app</a>
+    </div>
+    <div id="gateIos" class="hidden">
+      <ol class="steps gate-steps">
+        <li>Open this page in <b>Safari</b>.</li>
+        <li>Tap <b>Share</b> <b>□↑</b> at the bottom.</li>
+        <li>Tap <b>Add to Home Screen</b> → <b>Add</b>.</li>
+        <li>Open <b>Attendance</b> from your home screen.</li>
+      </ol>
+    </div>
+    <div id="gateOther" class="hidden">
+      <p class="small muted">Open <b>vimal-coder-mis.github.io</b> on your phone to install the app.</p>
+    </div>
+    <button class="linkish" id="gateContinue" type="button">Continue in browser</button>
+  </div>
 </div>
 
 <!-- INSTALL / KEEP-ME-LOGGED-IN SHEET -->
@@ -215,7 +251,7 @@
 <input type="file" id="refCam" accept="image/*" capture="user" class="hidden">
 <div class="overlay hidden" id="overlay"><div class="spinner"></div><div id="overlayText">Please wait…</div></div>
 
-<script src="config.js?v=10.0.0"></script>
-<script src="app.js?v=10.0.0"></script>
+<script src="config.js?v=11.0.0"></script>
+<script src="app.js?v=11.0.0"></script>
 </body>
 </html>
