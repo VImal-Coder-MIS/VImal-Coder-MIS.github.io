@@ -1,4 +1,4 @@
-/* AAP Attendance app (GitHub Pages / Android) v13.0.0 — talks to the Apps Script JSON API. */
+/* AAP Attendance app (GitHub Pages / Android) v14.0.0 — talks to the Apps Script JSON API. */
 const APP = window.APP_CONFIG || {};
 const APP_URL = location.origin + location.pathname.replace(/index\.html$/, '');
 const CFG_KEY = 'aap_attendance_cfg_v9';
@@ -1017,7 +1017,7 @@ const BOOT = Object.assign(
   setupInApp();
 
   /* installed-app detection, install prompt, APK link */
-  const APP_VERSION = '13.0.0';
+  const APP_VERSION = '14.0.0';
   const qs0 = new URLSearchParams(location.search);
   const FROM_APK = String(document.referrer).indexOf('android-app://') === 0;
   try {
@@ -1081,9 +1081,9 @@ const BOOT = Object.assign(
     $('updNow').disabled = true;
     $('updNow').textContent = 'Updating…';
     const go = () => location.reload();
-    if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
-      navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}).then(go);
-    } else go();
+    const clear = window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : Promise.resolve();
+    clear.catch(() => {}).then(() => navigator.serviceWorker && navigator.serviceWorker.getRegistration ? navigator.serviceWorker.getRegistration() : null)
+      .then(r => r && r.update()).catch(() => {}).then(go);
   });
   checkVersion();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkVersion(); });

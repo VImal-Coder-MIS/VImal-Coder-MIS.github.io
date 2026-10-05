@@ -1,6 +1,6 @@
 {
- "web": "13.0.0",
- "notes": "Update pop-up added: from now on you will see what is new each time the app is updated.",
+ "web": "14.0.0",
+ "notes": "The app now opens instantly.",
  "minApk": 1,
  "latestApk": 1
 }
