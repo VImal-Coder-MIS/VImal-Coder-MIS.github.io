@@ -1,4 +1,4 @@
-/* AAP Attendance app (GitHub Pages / Android) v11.0.0 — talks to the Apps Script JSON API. */
+/* AAP Attendance app (GitHub Pages / Android) v12.0.0 — talks to the Apps Script JSON API. */
 const APP = window.APP_CONFIG || {};
 const APP_URL = location.origin + location.pathname.replace(/index\.html$/, '');
 const CFG_KEY = 'aap_attendance_cfg_v9';
@@ -714,11 +714,21 @@ const BOOT = Object.assign(
       $('sumHoursSub').textContent = 'Today';
     }
   }
+  let avatarAsked = '';
   function renderAvatar(s) {
     const p = lsGet(PHOTO_KEY);
     const el = $('empAvatar');
-    if (p && p.id === s.id && p.photo) el.innerHTML = '<img alt="" src="' + p.photo + '">';
-    else el.textContent = String(s.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    if (p && p.id === s.id && p.photo) { el.innerHTML = '<img alt="" src="' + p.photo + '">'; return; }
+    el.textContent = String(s.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    // registration photo is on the server → fetch it once and keep it on this phone
+    if (s.hasPhoto && me && avatarAsked !== s.id) {
+      avatarAsked = s.id;
+      run('empPhoto', me.id, me.token).then(photo => {
+        if (!photo || !me || me.id !== s.id) return;
+        lsSet(PHOTO_KEY, { id: s.id, photo: photo });
+        if (state && state.id === s.id) renderAvatar(state);
+      }).catch(() => { avatarAsked = ''; });
+    }
   }
   function renderWeek(s) {
     const w = s.week || [];
@@ -1007,7 +1017,7 @@ const BOOT = Object.assign(
   setupInApp();
 
   /* installed-app detection, install prompt, APK link */
-  const APP_VERSION = '11.0.0';
+  const APP_VERSION = '12.0.0';
   const qs0 = new URLSearchParams(location.search);
   const FROM_APK = String(document.referrer).indexOf('android-app://') === 0;
   try {
@@ -1057,8 +1067,8 @@ const BOOT = Object.assign(
           if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
             navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}).then(go);
           } else go();
+          return;
         }
-        return;
       }
       if (IN_APK && IS_ANDROID && v.minApk && APK_V < v.minApk) showGate('update');
     }).catch(() => {});

@@ -1,6 +1,6 @@
-/* AAP Attendance service worker v11.0.0 — network first (always the latest version), cache as offline backup. */
-const CACHE = 'aap-attendance-11.0.0';
-const SHELL = ['./', './index.html', './styles.css?v=11.0.0', './app.js?v=11.0.0', './config.js?v=11.0.0',
+/* AAP Attendance service worker v12.0.0 — network first (always the latest version), cache as offline backup. */
+const CACHE = 'aap-attendance-12.0.0';
+const SHELL = ['./', './index.html', './styles.css?v=12.0.0', './app.js?v=12.0.0', './config.js?v=12.0.0',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
