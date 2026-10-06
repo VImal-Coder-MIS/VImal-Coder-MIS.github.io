@@ -1,0 +1,21 @@
+{
+  "name": "aap-attendance-app",
+  "version": "15.0.0",
+  "description": "AAP Attendance employee app (GitHub Pages PWA + Android TWA)",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.sw.json",
+    "deploy": "npm run typecheck && node build.mjs --out .."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tensorflow/tfjs-backend-wasm": "^4.22.0",
+    "@vladmandic/face-api": "^1.7.15",
+    "esbuild": "^0.24.2",
+    "typescript": "5.6"
+  },
+  "private": true,
+  "type": "module",
+  "releaseNotes": "Faster app: opens instantly every time, check-in shows at once, and the selfie must show your face."
+}

@@ -262,3 +262,16 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
+
+/* v15: skeleton loading, face check, version label */
+.skel .tile-v, .skel #empName, .skel #empMeta { color: transparent !important; border-radius: 8px;
+  background: linear-gradient(90deg, #eef1f6 25%, #f7f8fb 50%, #eef1f6 75%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+.skel #empName { min-width: 140px; min-height: 22px; display: inline-block; }
+.skel #empMeta { min-width: 90px; min-height: 14px; display: inline-block; margin-top: 4px; }
+.skel .tile-v { min-height: 26px; width: 70%; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.face-ic { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px;
+  background: var(--warn-soft); }
+.face-prev { display: block; width: 120px; height: 150px; object-fit: cover; border-radius: 14px; margin: 0 auto 16px; border: 1px solid var(--line); }
+.checking { opacity: .75; pointer-events: none; }
+.app-ver { margin-top: 2px; opacity: .6; }

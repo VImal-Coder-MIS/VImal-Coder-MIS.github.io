@@ -1,6 +1,6 @@
 {
- "web": "14.0.0",
- "notes": "The app now opens instantly.",
+ "web": "15.0.0",
+ "notes": "Faster app: opens instantly every time, check-in shows at once, and the selfie must show your face.",
  "minApk": 1,
  "latestApk": 1
 }
