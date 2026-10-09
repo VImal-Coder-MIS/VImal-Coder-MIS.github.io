@@ -1,6 +1,6 @@
 {
   "name": "aap-attendance-app",
-  "version": "15.0.0",
+  "version": "15.0.1",
   "description": "AAP Attendance employee app (GitHub Pages PWA + Android TWA)",
   "scripts": {
     "build": "node build.mjs",
@@ -17,5 +17,5 @@
   },
   "private": true,
   "type": "module",
-  "releaseNotes": "Faster app: opens instantly every time, check-in shows at once, and the selfie must show your face."
+  "releaseNotes": "The check-in selfie no longer shows the date and time."
 }

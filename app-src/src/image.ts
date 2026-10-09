@@ -47,18 +47,18 @@ export const refJpeg = (s: Scaled) => s.c.toDataURL('image/jpeg', IMAGE.refQuali
 /** Check-in selfie: max 400 px. */
 export const loadSelfie = (file: Blob) => loadScaled(file, IMAGE.selfieMaxSide);
 
-/** Stamp name / action / time on the bottom of the selfie and return a ~20–40 KB JPEG. */
-export function stampSelfie(s: Scaled, line1: string, line2: string): string {
+/** Label (name · Check In) on the bottom of the selfie; returns a ~20–40 KB JPEG. No date/time on the photo —
+ *  the trusted time is the one the server saves in the Sheet. */
+export function stampSelfie(s: Scaled, label: string): string {
   const { c, g, w, h } = s;
-  const bar = Math.max(34, Math.round(h * 0.1));
+  const bar = Math.max(24, Math.round(h * 0.065));
   g.fillStyle = 'rgba(0,0,0,.55)';
   g.fillRect(0, h - bar, w, bar);
   g.fillStyle = '#fff';
-  const fs = Math.round(bar * 0.34);
+  const fs = Math.round(bar * 0.5);
   g.font = `600 ${fs}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
-  g.fillText(line1, 8, h - bar + fs + 4);
-  g.font = `${Math.round(fs * 0.85)}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
-  g.fillText(line2, 8, h - 7);
+  g.textBaseline = 'middle';
+  g.fillText(label, 8, h - bar / 2);
   return c.toDataURL('image/jpeg', IMAGE.selfieQuality);
 }
 

@@ -14,7 +14,7 @@ import { loadSelfie, previewJpeg, stampSelfie } from './image';
 import { applyServer, handleAuthError, rebuild, resume } from './session';
 import { saveQueue } from './storage';
 import { geoSettings, store } from './store';
-import { hmsFmt, istDate, nowMs, stampFmt, to12h } from './time';
+import { hmsFmt, istDate, nowMs, to12h } from './time';
 import type { Action, EmpState, FaceMeta, Job } from './types';
 import { renderMain } from './ui/main-screen';
 import { sleep, uuid } from './util';
@@ -83,9 +83,7 @@ export async function onPhoto(): Promise<void> {
       return;
     }
     const st = store.state as EmpState;
-    const selfie = stampSelfie(img,
-      st.name + ' · ' + (action === 'IN' ? 'Check In' : 'Check Out'),
-      stampFmt.format(new Date(nowMs())) + ' IST');
+    const selfie = stampSelfie(img, st.name + ' · ' + (action === 'IN' ? 'Check In' : 'Check Out'));
     perf.photoMs = Math.round(performance.now() - t0);
     setChecking(false);
     record(action, selfie, face.meta);

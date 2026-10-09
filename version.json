@@ -1,6 +1,6 @@
 {
- "web": "15.0.0",
- "notes": "Faster app: opens instantly every time, check-in shows at once, and the selfie must show your face.",
+ "web": "15.0.1",
+ "notes": "The check-in selfie no longer shows the date and time.",
  "minApk": 1,
  "latestApk": 1
 }
