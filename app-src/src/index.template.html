@@ -158,7 +158,7 @@
       <div class="tile"><div class="tile-top"><span class="ti ti-in">↘</span>Check In</div><div class="tile-v" id="sumIn">—</div><div class="tile-s" id="sumInSub">Not yet</div></div>
       <div class="tile"><div class="tile-top"><span class="ti ti-out">↗</span>Check Out</div><div class="tile-v" id="sumOut">—</div><div class="tile-s" id="sumOutSub">Not yet</div></div>
       <div class="tile"><div class="tile-top"><span class="ti ti-hrs">⏱</span>Working Hours</div><div class="tile-v" id="sumHours">—</div><div class="tile-s" id="sumHoursSub">Today</div></div>
-      <div class="tile"><div class="tile-top"><span class="ti ti-days">📅</span>Days Present</div><div class="tile-v" id="sumDays">—</div><div class="tile-s">This month</div></div>
+      <button class="tile tile-link" id="daysTile" type="button" aria-label="Days present this month — open my attendance calendar"><div class="tile-top"><span class="ti ti-days">📅</span>Days Present<span class="tile-go" aria-hidden="true">›</span></div><div class="tile-v" id="sumDays">—</div><div class="tile-s">This month · <span class="link-ish">View all</span></div></button>
     </div>
 
     <div class="card" id="actionCard">
@@ -223,6 +223,28 @@
 </div>
 
 <!-- UPDATE AVAILABLE (installed app / website) -->
+<div class="hist hidden" id="histView" role="dialog" aria-modal="true" aria-labelledby="histTitle">
+  <div class="hist-inner">
+    <header class="hist-top">
+      <button class="hist-back" id="histBack" type="button" aria-label="Back">←</button>
+      <div><div class="strong" id="histTitle" style="font-size:18px">My attendance</div><div class="muted small">Tap a date to see your check-in and check-out</div></div>
+    </header>
+    <div class="card hist-card">
+      <div class="hist-nav">
+        <button class="hist-arrow" id="histPrev" type="button" aria-label="Previous month">‹</button>
+        <div class="strong" id="histMonth">—</div>
+        <button class="hist-arrow" id="histNext" type="button" aria-label="Next month">›</button>
+      </div>
+      <div class="cal cal-head" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+      <div class="cal" id="histGrid"></div>
+      <div class="cal-legend"><span><i class="lg present"></i>Present</span><span><i class="lg late"></i>Late</span><span><i class="lg absent"></i>Absent</span><span><i class="lg off"></i>Off</span></div>
+    </div>
+    <div class="card" id="histDay"></div>
+    <div class="hist-totals" id="histTotals"></div>
+    <div class="msg error hidden" id="histMsg"></div>
+  </div>
+</div>
+
 <div class="gate hidden" id="faceGate" role="alertdialog" aria-modal="true">
   <div class="gate-card">
     <div class="face-ic" aria-hidden="true">🙂</div>

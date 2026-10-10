@@ -14,6 +14,7 @@ import { store } from './store';
 import { istDate, setServerTime } from './time';
 import type { PublicConfig } from './types';
 import { checkReg, isPolling, showPending, showWelcome, wireAuth } from './ui/auth';
+import { wireHistory } from './ui/history';
 import { checkVersion, initInstall } from './ui/install';
 import { renderHeader, renderLoc, tick } from './ui/main-screen';
 
@@ -63,6 +64,7 @@ function boot(): void {
   renderHeader();
   wireAuth();
   wireMain();
+  wireHistory();
   initInstall();
 
   const qs = new URLSearchParams(location.search);

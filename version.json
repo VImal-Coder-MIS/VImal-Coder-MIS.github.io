@@ -1,6 +1,6 @@
 {
- "web": "15.0.1",
- "notes": "The check-in selfie no longer shows the date and time.",
+ "web": "15.1.0",
+ "notes": "New: tap \"Days Present\" to see your attendance calendar — check-in and check-out time for every day.",
  "minApk": 1,
  "latestApk": 1
 }

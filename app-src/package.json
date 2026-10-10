@@ -1,6 +1,6 @@
 {
   "name": "aap-attendance-app",
-  "version": "15.0.1",
+  "version": "15.1.0",
   "description": "AAP Attendance employee app (GitHub Pages PWA + Android TWA)",
   "scripts": {
     "build": "node build.mjs",
@@ -17,5 +17,5 @@
   },
   "private": true,
   "type": "module",
-  "releaseNotes": "The check-in selfie no longer shows the date and time."
+  "releaseNotes": "New: tap \"Days Present\" to see your attendance calendar \u2014 check-in and check-out time for every day."
 }

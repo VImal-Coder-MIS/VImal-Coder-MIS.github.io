@@ -275,3 +275,52 @@
 .face-prev { display: block; width: 120px; height: 150px; object-fit: cover; border-radius: 14px; margin: 0 auto 16px; border: 1px solid var(--line); }
 .checking { opacity: .75; pointer-events: none; }
 .app-ver { margin-top: 2px; opacity: .6; }
+
+/* v15.1: Days Present card → "My attendance" calendar */
+button.tile { font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.tile-link { transition: border-color .15s, transform .1s; }
+.tile-link:active { transform: scale(.98); }
+.tile-link:hover, .tile-link:focus-visible { border-color: var(--primary); outline: none; }
+.tile-go { margin-left: auto; font-size: 20px; line-height: 1; color: var(--primary); }
+.link-ish { color: var(--primary); font-weight: 600; }
+html.no-scroll, html.no-scroll body { overflow: hidden; }
+.hist { position: fixed; inset: 0; z-index: 70; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.hist-inner { max-width: 520px; margin: 0 auto; }
+.hist-top { display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; }
+.hist-back { appearance: none; border: 1px solid var(--line); background: var(--card); color: var(--text); width: 42px; height: 42px; border-radius: 12px; font-size: 20px; cursor: pointer; flex: none; }
+.hist-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 16px; }
+.hist-arrow { appearance: none; border: 1px solid var(--line); background: var(--card); color: var(--text); width: 40px; height: 40px; border-radius: 12px; font-size: 22px; line-height: 1; cursor: pointer; }
+.hist-arrow:disabled { opacity: .3; cursor: default; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-head span { text-align: center; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 2px 0 6px; }
+.cal-cell { appearance: none; border: 0; background: transparent; color: var(--text); font: inherit; height: 46px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 0; }
+.cal-cell.blank { cursor: default; }
+.cal-n { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+.cal-dot { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
+.cal-cell.present .cal-dot { background: var(--in); }
+.cal-cell.late .cal-dot { background: #e0a106; }
+.cal-cell.absent .cal-dot { background: var(--out); opacity: .7; }
+.cal-cell.missing .cal-dot { background: transparent; box-shadow: inset 0 0 0 1.5px #e0a106; }
+.cal-cell.off .cal-n { color: var(--muted); }
+.cal-cell.future { opacity: .35; cursor: default; }
+.cal-cell.today { box-shadow: inset 0 0 0 1.5px var(--primary); }
+.cal-cell.sel { background: var(--primary); box-shadow: none; }
+.cal-cell.sel .cal-n { color: #fff; }
+.cal-cell.sel .cal-dot { box-shadow: 0 0 0 1.5px #fff; }
+.cal-cell:not(.blank):not(.future):not(.sel):hover { background: var(--primary-soft); }
+.skel-cell, .skel-line { background: linear-gradient(90deg, #eef1f6 25%, #f7f8fb 50%, #eef1f6 75%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+.skel-cell { margin: 3px; height: 40px; }
+.skel-line { height: 16px; border-radius: 8px; margin: 6px 0 12px; }
+.skel-line.short { width: 55%; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 10px; justify-content: center; }
+.cal-legend .lg { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+.lg.present { background: var(--in); } .lg.late { background: #e0a106; } .lg.absent { background: var(--out); opacity: .7; } .lg.off { background: var(--muted); opacity: .4; }
+.hist-times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.hist-times > div { background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; }
+.hist-totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 12px; }
+.ht.span2 { grid-column: span 2; } .ht.span3 { grid-column: span 3; }
+.ht { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; box-shadow: var(--shadow); }
+.ht-v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ht-k { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hist.loading .hist-nav .strong::after { content: ''; display: inline-block; width: 10px; height: 10px; margin-left: 8px; border-radius: 50%; border: 2px solid var(--primary); border-right-color: transparent; animation: spin .8s linear infinite; vertical-align: -1px; }

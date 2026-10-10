@@ -105,3 +105,31 @@ export interface RegStatus {
 }
 
 export interface VersionInfo { web: string; notes?: string; minApk?: number; latestApk?: number; }
+
+/** One day in the employee's month calendar (empMonth). */
+export interface MonthDay {
+  date: string;
+  day: number;
+  today: boolean;
+  future: boolean;
+  off: boolean;
+  status: string;        // Present / Checked In / Missing Check-out / Absent / Weekly Off / Not yet / '' (future)
+  checkIn: string;
+  checkOut: string;
+  hours: string;
+  late: string;          // 'Yes' | ''
+  overtime: string;      // hours, e.g. '1.50'
+  events: Array<{ action: Action; time: string; dist: string; notes: string }>;
+}
+
+export interface MonthData {
+  month: string;         // yyyy-MM
+  label: string;         // October 2026
+  firstDow: number;      // 0 = Monday
+  canPrev: boolean;
+  canNext: boolean;
+  lateAfter: string;
+  shiftEnd: string;
+  days: MonthDay[];
+  serverTs: number;
+}
