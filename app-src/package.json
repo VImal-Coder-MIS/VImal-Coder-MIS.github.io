@@ -1,6 +1,6 @@
 {
   "name": "aap-attendance-app",
-  "version": "15.1.0",
+  "version": "15.1.1",
   "description": "AAP Attendance employee app (GitHub Pages PWA + Android TWA)",
   "scripts": {
     "build": "node build.mjs",
@@ -17,5 +17,5 @@
   },
   "private": true,
   "type": "module",
-  "releaseNotes": "New: tap \"Days Present\" to see your attendance calendar \u2014 check-in and check-out time for every day."
+  "releaseNotes": "Fix: the app now asks your phone to keep your login, so you are not logged out when the phone is low on storage."
 }

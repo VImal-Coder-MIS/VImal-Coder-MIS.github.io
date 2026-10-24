@@ -12,6 +12,26 @@ export function lsSet(key: string, value: unknown): void {
   } catch { /* storage full / private mode */ }
 }
 
+/**
+ * Ask Chrome to keep this app's data permanently, so a phone that runs low on space does not
+ * wipe the login. Chrome answers by itself (no pop-up); it says yes for installed / often-used
+ * apps, so this is asked on every open until it is granted.
+ */
+let keepAsked: Promise<boolean> | null = null;
+export function keepStorage(): Promise<boolean> {
+  if (!keepAsked) {
+    keepAsked = (async () => {
+      try {
+        const sm = navigator.storage;
+        if (!sm || typeof sm.persist !== 'function') return false;
+        if (await sm.persisted()) return true;
+        return await sm.persist();
+      } catch { return false; }
+    })();
+  }
+  return keepAsked;
+}
+
 /** Keep identity in the address too (iPhone home-screen icons reopen this exact URL). */
 export function setUrl(params: Record<string, string>): void {
   try {
@@ -27,6 +47,7 @@ export const loadMe = (): Me | null => {
 export function saveMe(me: Me): void {
   lsSet(KEYS.me, me);
   lsSet(KEYS.reg, null);
+  void keepStorage();
   setUrl({ e: me.id, t: me.token });
 }
 export function clearMe(): void {

@@ -1,6 +1,6 @@
 {
- "web": "15.1.0",
- "notes": "New: tap \"Days Present\" to see your attendance calendar — check-in and check-out time for every day.",
+ "web": "15.1.1",
+ "notes": "Fix: the app now asks your phone to keep your login, so you are not logged out when the phone is low on storage.",
  "minApk": 1,
  "latestApk": 1
 }

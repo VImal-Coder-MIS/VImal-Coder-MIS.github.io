@@ -9,7 +9,7 @@ import { TIMING } from './config';
 import { $, $input, esc, showMsg } from './dom';
 import { PERM_MSG, isDenied, onGeoChange, prewarm, startWatch, stopWatch } from './geo';
 import { openMain, resume } from './session';
-import { loadMe, loadReg, saveCfg, saveMe, saveReg, setUrl } from './storage';
+import { keepStorage, loadMe, loadReg, saveCfg, saveMe, saveReg, setUrl } from './storage';
 import { store } from './store';
 import { istDate, setServerTime } from './time';
 import type { PublicConfig } from './types';
@@ -100,6 +100,7 @@ function boot(): void {
   // network work starts after the first paint
   requestAnimationFrame(() => setTimeout(() => {
     refreshPublicConfig();
+    if (store.me || loadReg()) void keepStorage();
     if (store.me && store.queue.length) void flushQueue();
   }, 0));
 }
