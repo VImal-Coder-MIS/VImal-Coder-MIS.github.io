@@ -1,6 +1,6 @@
 {
  "web": "15.2.0",
- "notes": "In-app selfie camera (no more lost photos on low-memory phones), silent updates, login kept after storage clean-up, overtime explained.",
+ "notes": "",
  "minApk": 1,
  "latestApk": 1
 }
