@@ -241,6 +241,7 @@
     </div>
     <div class="card" id="histDay"></div>
     <div class="hist-totals" id="histTotals"></div>
+    <p class="muted small hidden" id="histOtNote" style="margin:10px 4px 0;line-height:1.45"></p>
     <div class="msg error hidden" id="histMsg"></div>
   </div>
 </div>
@@ -256,13 +257,29 @@
   </div>
 </div>
 
-<div class="gate hidden" id="updGate" role="dialog" aria-modal="true">
+<div class="gate hidden" id="updGate" role="alertdialog" aria-modal="true" aria-live="polite">
   <div class="gate-card">
     <span class="v-logo xl" aria-hidden="true"></span>
-    <div class="strong" style="font-size:21px;margin-top:14px">Update available</div>
-    <p class="muted" style="margin:6px 0 4px">A new version of the app is ready.</p>
-    <div class="upd-notes hidden" id="updNotes"></div>
-    <button class="btn btn-in btn-wide" id="updNow" type="button" style="margin-top:16px">Update now</button>
+    <div class="spinner" style="margin:18px auto 0" aria-hidden="true"></div>
+    <div class="strong" style="font-size:19px;margin-top:14px">Please wait</div>
+    <p class="muted" style="margin:6px 0 4px">Connecting to server…</p>
+  </div>
+</div>
+
+<!-- IN-APP SELFIE CAMERA -->
+<div class="cam hidden" id="camView" role="dialog" aria-modal="true" aria-label="Take a selfie">
+  <video id="camVideo" autoplay playsinline muted></video>
+  <div class="cam-guide" aria-hidden="true"></div>
+  <div class="cam-top"><div id="camTitle">Selfie</div><div class="cam-hint">Keep your face inside the oval</div></div>
+  <div class="spinner cam-wait" id="camWait" aria-hidden="true"></div>
+  <div class="cam-msg hidden" id="camMsg">
+    <p id="camMsgText" style="margin:0 0 14px"></p>
+    <button class="btn btn-in btn-wide" id="camFallback" type="button">📷 Use phone camera</button>
+  </div>
+  <div class="cam-bar">
+    <button class="cam-cancel" id="camCancel" type="button">Cancel</button>
+    <button class="cam-shutter" id="camShot" type="button" aria-label="Take photo" disabled></button>
+    <span class="cam-spacer" aria-hidden="true"></span>
   </div>
 </div>
 

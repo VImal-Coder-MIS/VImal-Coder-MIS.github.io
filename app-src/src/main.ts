@@ -4,6 +4,7 @@
  * the server is asked in the background.
  */
 import { api } from './api';
+import { closeLiveCamera, wireCamera } from './camera';
 import { onAction, onFaceCancel, onFaceRetake, onPhoto, flushQueue, retryNow } from './checkin';
 import { TIMING } from './config';
 import { $, $input, esc, showMsg } from './dom';
@@ -30,7 +31,11 @@ function wireMain(): void {
   onGeoChange(renderLoc);
   window.addEventListener('online', retryNow);
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { if (!store.queue.length) stopWatch(); return; }
+    if (document.hidden) {
+      closeLiveCamera(); // free the camera when the app goes to the background
+      if (!store.queue.length) stopWatch();
+      return;
+    }
     tick();
     checkVersion();
     if (isPolling()) { void checkReg(false); return; }
@@ -65,6 +70,7 @@ function boot(): void {
   wireAuth();
   wireMain();
   wireHistory();
+  wireCamera();
   initInstall();
 
   const qs = new URLSearchParams(location.search);

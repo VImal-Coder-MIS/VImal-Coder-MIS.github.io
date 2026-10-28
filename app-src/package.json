@@ -1,6 +1,6 @@
 {
   "name": "aap-attendance-app",
-  "version": "15.1.1",
+  "version": "15.2.0",
   "description": "AAP Attendance employee app (GitHub Pages PWA + Android TWA)",
   "scripts": {
     "build": "node build.mjs",
@@ -17,5 +17,5 @@
   },
   "private": true,
   "type": "module",
-  "releaseNotes": "Fix: the app now asks your phone to keep your login, so you are not logged out when the phone is low on storage."
+  "releaseNotes": "In-app selfie camera (no more lost photos on low-memory phones), silent updates, login kept after storage clean-up, overtime explained."
 }

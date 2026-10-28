@@ -5,7 +5,7 @@ import { $, $input, boxMsg, overlay, show, showMsg, vibrate } from '../dom';
 import { checkFace, preloadFace } from '../face';
 import { loadRef, refJpeg } from '../image';
 import { applyServer, forgetMe, handleAuthError } from '../session';
-import { loadPhoto, loadReg, saveMe, savePhoto, saveReg } from '../storage';
+import { deviceId, loadPhoto, loadReg, saveMe, savePhoto, saveReg } from '../storage';
 import { store } from '../store';
 import type { EmpState, Me, RegStatus } from '../types';
 import { digits, phoneInfo, weakPin } from '../util';
@@ -236,7 +236,7 @@ async function submitLogin(ev: Event): Promise<void> {
   store.busy = true;
   overlay(true, 'Logging in…');
   try {
-    const r = await api<Me & { state: EmpState }>('empLogin', mobile, pin, phoneInfo());
+    const r = await api<Me & { state: EmpState }>('empLogin', mobile, pin, phoneInfo(), deviceId());
     store.me = { id: r.id, token: r.token };
     saveMe(store.me);
     ($('loginForm') as HTMLFormElement).reset();

@@ -1,7 +1,7 @@
 /**
  * CHECK IN / OUT — optimistic and offline-first.
  *
- *   tap → camera (GPS + face detector load meanwhile) → face check (~0.1–0.5 s)
+ *   tap → in-app camera (GPS + face detector load meanwhile) → face check (~0.1–0.5 s)
  *       → "✓ Checked in" on screen immediately
  *       → location + upload continue in the background queue (kept on the phone, retried until saved).
  */
@@ -10,7 +10,8 @@ import { GPS, TIMING } from './config';
 import { $, $btn, $input, esc, hideMsg, show, showMsg, setSync, vibrate } from './dom';
 import { checkFace, preloadFace } from './face';
 import { clearFix, fixDistance, freshFix, getLocation, startWatch, stopWatch } from './geo';
-import { loadSelfie, previewJpeg, stampSelfie } from './image';
+import { liveCameraSupported, openLiveCamera, useFileCamera } from './camera';
+import { loadSelfie, previewJpeg, stampSelfie, type Scaled } from './image';
 import { applyServer, handleAuthError, rebuild, resume } from './session';
 import { saveQueue } from './storage';
 import { geoSettings, store } from './store';
@@ -32,10 +33,23 @@ const selfieNeeded = (a: Action) => {
   return m === 'BOTH' || (m === 'IN' && a === 'IN');
 };
 
-function openCamera(): void {
+/** The phone's own camera app (old way; used only when the in-app camera cannot start). */
+function openFileCamera(): void {
   const cam = $input('cam');
   cam.value = '';
   cam.click(); // must stay inside the tap handler so the camera can open
+}
+
+/** In-app camera (Chrome stays on screen → the photo is never lost on low-memory phones). */
+function openCamera(): void {
+  const action = pendingAction;
+  if (!action) return;
+  if (useFileCamera || !liveCameraSupported()) { openFileCamera(); return; }
+  openLiveCamera(action === 'IN' ? 'Check In selfie' : 'Check Out selfie', {
+    onShot: img => void usePhoto(img),
+    onCancel: () => { if (!store.busy) onFaceCancel(); },
+    onFallback: openFileCamera
+  });
 }
 
 export function onAction(): void {
@@ -71,10 +85,30 @@ export async function onPhoto(): Promise<void> {
     return;
   }
   setChecking(true);
+  let img: Scaled;
+  const t0 = performance.now();
   try {
-    const t0 = performance.now();
-    const img = await loadSelfie(file);
-    perf.decodeMs = Math.round(performance.now() - t0);
+    img = await loadSelfie(file);
+  } catch {
+    setChecking(false);
+    showMsg('Could not read the photo. Please tap the button and try again.', 'error');
+    return;
+  }
+  perf.decodeMs = Math.round(performance.now() - t0);
+  await checkAndRecord(action, img, t0);
+}
+
+/** Photo from the in-app camera (always fresh — no age check needed). */
+async function usePhoto(img: Scaled): Promise<void> {
+  const action = pendingAction;
+  if (!action || store.busy) return;
+  setChecking(true);
+  perf.decodeMs = 0;
+  await checkAndRecord(action, img, performance.now());
+}
+
+async function checkAndRecord(action: Action, img: Scaled, t0: number): Promise<void> {
+  try {
     const face = await checkFace(img.c);
     perf.faceMs = Math.round(performance.now() - t0) - perf.decodeMs;
     if (face.found === false) {

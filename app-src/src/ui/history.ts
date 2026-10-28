@@ -149,6 +149,13 @@ function dayClass(d: MonthDay): string {
   return c.join(' ');
 }
 
+/** 'HH:mm' + minutes → 'HH:mm' */
+function addMin(t: string, add: number): string {
+  const [h, m] = t.split(':').map(Number);
+  const x = (h * 60 + m + add) % 1440;
+  return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0');
+}
+
 function render(d: MonthData): void {
   view = d;
   setNav(d.label, d.canPrev, d.canNext);
@@ -174,6 +181,15 @@ function render(d: MonthData): void {
     ['Present', String(present), ''], ['Late', String(late), ''], ['Absent', String(absent), ''],
     ['Hours worked', mins ? fmtDur(mins) : '—', ot ? ' span2' : ' span3'], ...(ot ? [['Overtime', fmtDur(ot), '']] : [])
   ].map(([k, v, cls]) => '<div class="ht' + cls + '"><div class="ht-v">' + esc(v) + '</div><div class="ht-k">' + esc(k) + '</div></div>').join('');
+  // plain-words explanation of the overtime number
+  const otDays = past.filter(x => minsOf(x.overtime) > 0).length;
+  const end = to12h(d.shiftEnd || '18:00');
+  $('histOtNote').innerHTML = ot
+    ? 'ⓘ <b>Overtime</b> = time you stayed after the shift ends at <b>' + esc(end) + '</b>. ' +
+      'Example: check out at ' + esc(to12h(addMin(d.shiftEnd || '18:00', 90))) + ' → 1h 30m overtime that day. ' +
+      'This month: <b>' + esc(fmtDur(ot)) + '</b> from ' + otDays + ' day' + (otDays === 1 ? '' : 's') + ' — tap a day to see its overtime.'
+    : '';
+  show($('histOtNote'), !!ot);
   renderDay();
 }
 
@@ -194,7 +210,7 @@ function renderDay(): void {
     !d.checkIn ? 'No check-in on this day.' : '';
   const extra = [
     d.hours ? 'Worked ' + fmtDur(minsOf(d.hours)) : '',
-    d.overtime ? 'Overtime ' + fmtDur(minsOf(d.overtime)) : '',
+    d.overtime && view ? 'Overtime ' + fmtDur(minsOf(d.overtime)) + ' (after ' + to12h(view.shiftEnd || '18:00') + ')' : '',
     d.events.length > 2 ? d.events.length + ' check-ins/outs' : ''
   ].filter(Boolean).join(' · ');
   $('histDay').innerHTML =

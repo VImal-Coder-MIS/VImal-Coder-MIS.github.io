@@ -1,6 +1,7 @@
-/** Install gate (website → app), "Update available" pop-up, old-APK gate, service worker, install sheet. */
+/** Install gate (website → app), silent updates, old-APK gate, service worker, install sheet. */
 import { APP, APP_URL, APP_VERSION, IS_ANDROID, IS_INAPP, IS_IOS } from '../config';
-import { $, $a, $btn, boxMsg, show } from '../dom';
+import { isCameraOpen } from '../camera';
+import { $, $a, boxMsg, show } from '../dom';
 import { loadReg, session } from '../storage';
 import { store } from '../store';
 import type { VersionInfo } from '../types';
@@ -18,7 +19,6 @@ export const STANDALONE = IN_APK || matchMedia('(display-mode: standalone)').mat
 
 let deferredPrompt: InstallPrompt | null = null;
 let apkReady = false;
-let updWanted: VersionInfo | null = null;
 
 function personalLink(): string {
   if (store.me) return APP_URL + '?e=' + encodeURIComponent(store.me.id) + '&t=' + encodeURIComponent(store.me.token);
@@ -86,37 +86,40 @@ function showGate(kind: 'install' | 'update'): void {
   show($('gate'), true);
 }
 
-/* ---------- updates ---------- */
+/* ---------- updates (silent) ----------
+ * A new version is installed by itself when the app is opened / brought back: a short
+ * "Please wait · Connecting to server…" screen (~2–3 s), then the app reloads on the new version.
+ * Never while a photo is being checked, the camera is open or a check-in is still being sent.
+ * The session flag makes sure it reloads at most once per version (no loops). */
+let updating = false;
+let updRetry: ReturnType<typeof setTimeout> | undefined;
+
 export function checkVersion(): void {
+  if (updating) return;
   fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
     .then(r => r.json() as Promise<VersionInfo>)
     .then(v => {
-      if (v.web && v.web !== APP_VERSION && session('aap_reloaded_for') !== v.web) offerUpdate(v); // never loops
+      if (v.web && v.web !== APP_VERSION && session('aap_reloaded_for') !== v.web) updateQuietly(v.web);
       if (IN_APK && IS_ANDROID && v.minApk && APK_V < v.minApk) showGate('update');
     })
     .catch(() => { /* offline: try again next time */ });
 }
 
-/** "Update available" pop-up: must tap Update now; waits while a check-in is still being saved. */
-function offerUpdate(v: VersionInfo): void {
-  updWanted = v;
-  if (store.flushing || store.busy || store.queue.length) {
-    setTimeout(() => { if (updWanted) offerUpdate(updWanted); }, 3000);
+function updateQuietly(web: string): void {
+  clearTimeout(updRetry);
+  if (updating) return;
+  if (document.hidden || store.flushing || store.busy || store.queue.length || isCameraOpen()) {
+    updRetry = setTimeout(() => updateQuietly(web), 3000);
     return;
   }
-  $('updNotes').textContent = v.notes || '';
-  show($('updNotes'), !!v.notes);
+  updating = true;
+  session('aap_reloaded_for', web);
   show($('updGate'), true);
-}
-
-async function updateNow(): Promise<void> {
-  session('aap_reloaded_for', updWanted?.web || '');
-  const b = $btn('updNow');
-  b.disabled = true;
-  b.textContent = 'Updating…';
-  try { await Promise.all((await caches.keys()).map(k => caches.delete(k))); } catch { /* no Cache API */ }
-  try { await (await navigator.serviceWorker?.getRegistration())?.update(); } catch { /* offline */ }
-  location.reload();
+  void (async () => {
+    try { await Promise.all((await caches.keys()).map(k => caches.delete(k))); } catch { /* no Cache API */ }
+    try { await (await navigator.serviceWorker?.getRegistration())?.update(); } catch { /* offline */ }
+    location.reload();
+  })();
 }
 
 export function initInstall(): void {
@@ -134,7 +137,6 @@ export function initInstall(): void {
   $('copyLink2').addEventListener('click', () => void copyText(personalLink(), 'installMsg'));
   $('copyLink1').addEventListener('click', () => void copyText(APP_URL, null));
   $('gateContinue').addEventListener('click', () => { session('aap_gate_skip', '1'); show($('gate'), false); });
-  $('updNow').addEventListener('click', () => void updateNow());
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e as InstallPrompt; });
 
   if (!STANDALONE && APP.API_URL && session('aap_gate_skip') !== '1') showGate('install');
