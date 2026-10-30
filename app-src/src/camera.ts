@@ -86,10 +86,12 @@ export function openLiveCamera(title: string, h: CameraHandlers): void {
   startTimer = setTimeout(() => { if (seq === openSeq && !stream) failed(reason(null)); }, START_TIMEOUT_MS);
   void (async () => {
     try {
-      const s = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } }
-      });
+      // resizeMode 'none' = the camera's own picture size. Asking for a portrait size made Chrome
+      // CROP the landscape sensor picture and blow it up (very zoomed-in preview, v15.2.0).
+      const want: MediaTrackConstraints & { resizeMode?: string } = {
+        facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 }, resizeMode: 'none'
+      };
+      const s = await navigator.mediaDevices.getUserMedia({ audio: false, video: want });
       if (seq !== openSeq) { s.getTracks().forEach(t => t.stop()); return; } // closed meanwhile
       stream = s;
       const v = video();
@@ -97,6 +99,7 @@ export function openLiveCamera(title: string, h: CameraHandlers): void {
       await v.play().catch(() => null);
       if (!v.videoWidth) await new Promise<void>(res => v.addEventListener('loadeddata', () => res(), { once: true }));
       if (seq !== openSeq) return;
+      fitFrame();
       clearTimeout(startTimer);
       show($('camWait'), false);
       $btn('camShot').disabled = false;
@@ -104,6 +107,12 @@ export function openLiveCamera(title: string, h: CameraHandlers): void {
       if (seq === openSeq) failed(reason(e));
     }
   })();
+}
+
+/** Preview box = the camera picture's own shape, so nothing is cut off or zoomed. */
+function fitFrame(): void {
+  const v = video();
+  if (v.videoWidth && v.videoHeight) $('camFrame').style.setProperty('--ar', String(v.videoWidth / v.videoHeight));
 }
 
 /** Current video frame → small canvas (max IMAGE.selfieMaxSide, not mirrored). */
@@ -137,5 +146,6 @@ export function wireCamera(): void {
     finish()?.onShot(img);
   });
   $('camCancel').addEventListener('click', () => closeLiveCamera());
+  video().addEventListener('resize', fitFrame); // phone turned
   $('camFallback').addEventListener('click', () => finish()?.onFallback());
 }

@@ -327,11 +327,13 @@ html.no-scroll, html.no-scroll body { overflow: hidden; }
 
 /* ---------- in-app selfie camera ---------- */
 .cam { position: fixed; inset: 0; z-index: 95; background: #000; overflow: hidden; }
-.cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); background: #000; }
-.cam-guide { position: absolute; left: 50%; top: 45%; width: min(64vw, 300px); aspect-ratio: 3 / 4; transform: translate(-50%, -50%); border: 3px solid rgba(255, 255, 255, .9); border-radius: 50%; box-shadow: 0 0 0 200vmax rgba(0, 0, 0, .38); pointer-events: none; }
+/* the preview shows the WHOLE camera picture (same as the photo that is saved) — no zoom / crop */
+.cam-frame { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100vw, calc((100vh - 230px) * var(--ar, .75))); width: min(100vw, calc((100dvh - 230px) * var(--ar, .75))); aspect-ratio: var(--ar, .75); overflow: hidden; border-radius: 14px; background: #000; container-type: size; }
+.cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); background: #000; }
+.cam-guide { position: absolute; left: 50%; top: 48%; width: 60%; width: min(62cqw, 80cqh * .75); aspect-ratio: 3 / 4; transform: translate(-50%, -50%); border: 3px solid rgba(255, 255, 255, .9); border-radius: 50%; box-shadow: 0 0 0 200vmax rgba(0, 0, 0, .35); pointer-events: none; }
 .cam-top { position: absolute; top: 0; left: 0; right: 0; padding: max(16px, env(safe-area-inset-top)) 16px 26px; color: #fff; text-align: center; font-weight: 700; font-size: 18px; background: linear-gradient(rgba(0, 0, 0, .55), transparent); }
 .cam-hint { font-weight: 500; font-size: 14px; opacity: .85; margin-top: 4px; }
-.cam-wait { position: absolute; left: 50%; top: 45%; margin: -18px 0 0 -18px; border-color: rgba(255, 255, 255, .3); border-top-color: #fff; }
+.cam-wait { position: absolute; left: 50%; top: 50%; margin: -18px 0 0 -18px; border-color: rgba(255, 255, 255, .3); border-top-color: #fff; }
 .cam-msg { position: absolute; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); max-width: 420px; margin: 0 auto; background: var(--card); color: var(--text); border-radius: 18px; padding: 20px; text-align: center; }
 .cam-bar { position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 24px max(26px, env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: space-between; background: linear-gradient(transparent, rgba(0, 0, 0, .65)); }
 .cam-cancel { background: none; border: 0; color: #fff; font: inherit; font-size: 16px; width: 80px; text-align: left; padding: 10px 0; }

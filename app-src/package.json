@@ -1,6 +1,6 @@
 {
   "name": "aap-attendance-app",
-  "version": "15.2.0",
+  "version": "15.2.1",
   "description": "AAP Attendance employee app (GitHub Pages PWA + Android TWA)",
   "scripts": {
     "build": "node build.mjs",

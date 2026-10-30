@@ -268,8 +268,10 @@
 
 <!-- IN-APP SELFIE CAMERA -->
 <div class="cam hidden" id="camView" role="dialog" aria-modal="true" aria-label="Take a selfie">
-  <video id="camVideo" autoplay playsinline muted></video>
-  <div class="cam-guide" aria-hidden="true"></div>
+  <div class="cam-frame" id="camFrame">
+    <video id="camVideo" autoplay playsinline muted></video>
+    <div class="cam-guide" aria-hidden="true"></div>
+  </div>
   <div class="cam-top"><div id="camTitle">Selfie</div><div class="cam-hint">Keep your face inside the oval</div></div>
   <div class="spinner cam-wait" id="camWait" aria-hidden="true"></div>
   <div class="cam-msg hidden" id="camMsg">
